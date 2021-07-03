@@ -2,7 +2,7 @@
   <div class="flex flex-col h-screen">
     <header class="flex justify-between items-center px-6 py-4 border-b">
       <h1 class="text-xl text-pink-700 font-bold">VueSlackApp</h1>
-      <button class="border-pink-700 border-2 rounded px-6 py-2 text-pink-700 hover:bg-pink-700 hover:text-white duration-300"><router-link to="/signin">Slackを始める</router-link></button>
+      <button class="border-pink-700 border-2 rounded px-6 py-2 text-pink-700 hover:bg-pink-700 hover:text-white duration-300"><router-link to="/register">Slackを始める</router-link></button>
     </header>
     <div class="bg-gray-100 flex-auto">
       <div class="flex justify-center mt-16">
@@ -28,6 +28,15 @@
                 placeholder="パスワード"
               >
             </div>
+            <div v-if="errors.length">
+              <ul class="my-4">
+                <li
+                  v-for="(error, index) in errors"
+                  :key="index"
+                  class="font-semibold text-red-700"
+                >{{ error }}</li>
+              </ul>
+            </div>
             <div class="mb-4">
               <button type="submit" class="border w-full p-3 bg-pink-700 text-white hover:opacity-50 duration-500">サインイン</button>
             </div>
@@ -41,12 +50,14 @@
 <script>
 import firebase from "firebase/app";
 import "firebase/auth";
+import "firebase/database";
 
 export default {
   data() {
     return {
       email: "",
-      password: ""
+      password: "",
+      errors: []
     }
   },
   methods: {
@@ -55,8 +66,9 @@ export default {
         console.log(response)
         this.$router.push("/")
       })
-      .catch(e => {
-        console.log(e);
+      .catch(() => {
+        this.password = "";
+        this.errors.push("メールアドレスかパスワードに誤りがあります。");
       });
     }
   }

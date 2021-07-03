@@ -28,6 +28,17 @@
                 placeholder="パスワード"
               >
             </div>
+            <div v-if="errors.length">
+              <ul class="my-4">
+                <li
+                  v-for="(error, index) in errors"
+                  :key="index"
+                  class="font-semibold text-red-700"
+                >
+                  {{ error }}
+                </li>
+              </ul>
+            </div>
             <div class="mb-4">
               <button type="submit" class="border w-full p-3 bg-pink-700 text-white hover:opacity-50 duration-500">ログイン</button>
             </div>
@@ -41,21 +52,40 @@
 <script>
 import firebase from "firebase/app";
 import "firebase/auth";
+import "firebase/database";
 
 export default {
   data() {
     return {
       email: "",
-      password: ""
+      password: "",
+      errors: []
     }
   },
   methods: {
     registerUser() {
       firebase.auth().createUserWithEmailAndPassword(this.email, this.password).then(response => {
-        console.log(response)
+        const user = response.user
+        firebase.database().ref("users").child(user.uid).set({
+          user_id: user.uid,
+          email: user.email
+        })
+        .then(() => {
+          this.$router.push("/")
+        })
+        .catch(e => {
+          console.log(e);
+        });
       })
       .catch(e => {
         console.log(e);
+        if (e.code == "auth/email-already-in-use") {
+          this.errors.push("入力したメールアドレスは登録済みです。");
+        } else {
+          this.errors.push(
+            "入力したメールアドレスかパスワードに問題があります。"
+          );
+        }
       });
     }
   }

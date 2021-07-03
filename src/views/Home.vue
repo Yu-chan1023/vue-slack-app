@@ -26,17 +26,17 @@
       </div>
       <div
         v-for="user in users"
-        :key="user.id"
+        :key="user.user_id"
         class="mt-2 flex items-center"
       >
         <span class="rounded-full w-3 h-3 bg-green-300 mr-2"></span>
-        <span class="opacity-50">{{ user.email }}</span>
+        <span class="opacity-50" @click="directMessage(user)">{{ user.email }}</span>
       </div>
     </div>
     <div class="flex flex-col flex-grow bg-gray-100">
       <header class="border-b bg-white">
         <div class="flex justify-between items-center p-3">
-          <div class="font-bold text-lg">{{ user.email }}</div>
+          <div class="font-bold text-lg">{{ channel_name }}</div>
           <div class="flex items-center"> 
             <Call class="mr-1" />
             <Cog class="mr-1" />
@@ -51,26 +51,25 @@
       </header>
       <main class="flex-grow overflow-y-scroll">
         <div class="flex flex-col h-full p-4">
-          <div class="flex-grow overflow-y-scroll mb-4 ">
-            <div class="mb-4 flex">
-              <Avator :user="user.email" />
+          <div class="flex-grow overflow-y-scroll mb-4">
+            <div class="mb-4 flex" v-for="message in messages" :key="message.key">
+              <Avator :user="message.user" />
               <div class="ml-2">
-                <div class="font-bold">{{ user.email }}</div>
-                <div>初めてのメッセージ</div>
+                <div class="font-bold">{{ message.user }}</div>
+                <div>{{ message.content }}</div>
               </div>
             </div>
           </div>
           <div>
-            <div class="border border-gray-300">
-              <textarea class="w-full p-4 outline-none text-sm" placeholder="XXXXへのメッセージ"></textarea>
+            <div class="border border-gray-400">
+              <textarea class="w-full p-4 outline-none text-sm" :placeholder="placeholder" v-model="message"></textarea>
               <div class="bg-gray-100 px-2 py-1">
-                <button class="py-1 px-2 rounded bg-pink-600 text-white text-sm">送信</button>
+                <button class="py-1 px-2 rounded bg-pink-600 text-white text-sm" @click="sendMessage">送信</button>
               </div>
             </div>
           </div>
         </div>
       </main>
-
     </div>
   </div>
 </template>
@@ -78,6 +77,7 @@
 <script>
 import firebase from "firebase/app";
 import "firebase/auth";
+import 'firebase/database';
 import Bell from '../components/Bell.vue'
 import Plus from '../components/Plus.vue'
 import Cog from '../components/Cog.vue'
@@ -99,6 +99,12 @@ export default {
   data() {
     return {
       user: "",
+      users: [],
+      placeholder: "",
+      message: "",
+      messages: [],
+      channel_name: "",
+      channel_id: "",
       channels: [
         {
           id: 1,
@@ -117,30 +123,52 @@ export default {
           name: "エンジニア"
         }
       ],
-      users: [
-        {
-          id: 1,
-          email: "aaa@example.com"
-        },
-        {
-          id: 2,
-          email: "bbb@example.com"
-        },
-        {
-          id: 3,
-          email: "ccc@example.com"
-        },
-      ],
     }
   },
   methods: {
     signOut() {
       firebase.auth().signOut()
       this.$router.push('/signin')
+    },
+    directMessage(user) {
+      this.messages = []
+      this.user.uid > user.user_id
+        ? (this.channel_id = this.user.uid + "-" + user.user_id)
+        : (this.channel_id = user.user_id + "-" + this.user.uid);
+
+      if (this.channel_id != "") {
+        firebase.database().ref("messages").child(this.channel_id).off();
+      }
+
+      this.channel_name = user.email;
+      this.placeholder = user.email + "へのメッセージ";
+
+      firebase.database().ref("messages").child(this.channel_id).on("child_added", snapshot => {
+        this.messages.push(snapshot.val())
+      })
+    },
+    sendMessage() {
+      const newMessage = firebase.database().ref("messages").child(this.channel_id).push();
+      const key_id = newMessage.key;
+
+      newMessage.set({
+        key: key_id,
+        content: this.message,
+        user: this.user.email,
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      })
+      this.message = ""
     }
   },
-  mounted(){
+  mounted() {
     this.user = firebase.auth().currentUser;
+    firebase.database().ref("users").on("child_added", snapshot => {
+      this.users.push(snapshot.val())
+    })
+  },
+  beforeDestroy() {
+    firebase.database().ref("users").off()
+    firebase.database().ref("messages").child(this.channel_id).off();
   }
 }
 </script>
