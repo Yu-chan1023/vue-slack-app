@@ -11,14 +11,37 @@
       </div>
       <div class="mt-5 flex justify-between items-center">
         <div class="font-bold opacity-50 text-xl">チャンネル</div>
-        <Plus />
+        <div 
+          class="flex justify-center items-center z-10 fixed top-0 left-0 h-full w-full" 
+          style="background-color:rgba(0,0,0,0.5)"
+          v-show="channelModal"
+          @click="closeChannelModal"
+        >
+          <div class="w-1/3 z-20 rounded-md bg-white text-gray-900 p-4" v-on:click.stop>
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-3xl text-black">チャンネル作成</h2>
+              <span class="text-4xl cursor-pointer" @click="closeChannelModal">x</span>
+            </div>
+            <p>チャンネルはチームがコニュニケーションを取る場所です。特定のトピックに基づいてチャンネルを作ると良いでしょう。(例: #マーケティング)</p>
+            <div class="my-4">
+              <label for="channel-name">名前</label>
+              <input type="text" id="channel-name" class="py-2 px-4 w-full rounded border" v-model="channel">
+            </div>
+            <div class="flex justify-end">
+              <button class="px-8 py-2 rounded bg-pink-800 font-bold text-white" @click="addChannel">追加</button>
+            </div>
+          </div>
+        </div>
+        <Plus 
+          @click.native="showChannelModal"
+        />
       </div>
       <div
         v-for="channel in channels"
         :key="channel.id"
         class="opacity-50 mt-1"
       >
-        # {{ channel.name }}
+        <span @click="channelMessage(channel)"># {{ channel.channel_name }}</span>
       </div>
       <div class="mt-5 flex justify-between items-center">
         <div class="font-bold opacity-50 text-xl">ダイレクトメッセージ</div>
@@ -103,26 +126,11 @@ export default {
       placeholder: "",
       message: "",
       messages: [],
+      channel: "",
+      channelModal: false,
       channel_name: "",
       channel_id: "",
-      channels: [
-        {
-          id: 1,
-          name: "営業"
-        },
-        {
-          id: 2,
-          name: "マーケティング"
-        },
-        {
-          id: 3,
-          name: "クリエイティブ"
-        },
-        {
-          id: 4,
-          name: "エンジニア"
-        }
-      ],
+      channels: [],
     }
   },
   methods: {
@@ -158,12 +166,48 @@ export default {
         createdAt: firebase.database.ServerValue.TIMESTAMP
       })
       this.message = ""
+    },
+    showChannelModal() {
+      this.channelModal = true
+    },
+    closeChannelModal() {
+      this.channelModal = false
+    },
+    addChannel() {
+      const newChannel = firebase.database().ref("channels").push();
+      const key_id = newChannel.key
+
+      newChannel.set({
+        id: key_id,
+        channel_name: this.channel
+      }).then(() => {
+        this.channelModal = false
+      })
+      this.channel = ''
+    },
+    channelMessage(channel) {
+      this.messages = [];
+      this.channel_name = "# " + channel.channel_name;
+      this.placeholder = '# ' + channel.channel_name + 'へのメッセージ';
+      this.channel_id = channel.id;
+
+      if (this.channel_id != "") {
+        firebase.database().ref("messages").child(this.channel_id).off()
+      }
+
+      firebase.database().ref("messages").child(channel.id).on("child_added", snapshot => {
+        this.messages.push(snapshot.val());
+      });
     }
   },
   mounted() {
     this.user = firebase.auth().currentUser;
     firebase.database().ref("users").on("child_added", snapshot => {
       this.users.push(snapshot.val())
+    })
+
+    firebase.database().ref("channels").on("child_added", snapshot => {
+      this.channels.push(snapshot.val())
     })
   },
   beforeDestroy() {
