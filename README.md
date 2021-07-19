@@ -1,6 +1,6 @@
 # アプリ概要
-Vue.jsとFirebaseを利用したリアルタイム更新機能のチャットアプリです。 <br>
-VueRouterを使用してSPAを構築
+Vue.jsとFirebaseを利用したリアルタイム更新のチャットアプリです。 <br>
+VueRouterを使用してSPAを構築。
 
 <br>
 
@@ -16,7 +16,7 @@ https://vue-slack-app-bc696.firebaseapp.com/
 
 # 言語
 - Node.js v16.1.0 <br>
-- Vue.js vue@2.6.14 <br>- Firebase 9.14.0 <br>
+- Vue.js vue@2.6.14 <br>
 - Firebase 9.14.0 <br>
 - Tailwind CSS <br>
 
