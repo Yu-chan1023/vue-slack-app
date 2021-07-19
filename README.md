@@ -1,24 +1,43 @@
-# vue-slack-app
+# アプリ概要
+Vue.jsとFirebaseを利用したリアルタイム更新機能のチャットアプリです。 <br>
+VueRouterを使用してSPAを構築
 
-## Project setup
-```
-npm install
-```
+<br>
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+# URL
 
-### Compiles and minifies for production
-```
-npm run build
-```
+https://vue-slack-app-bc696.firebaseapp.com/
 
-### Lints and fixes files
-```
-npm run lint
-```
+## テストユーザー
+> メールアドレス: aaa@aaa.com <br>
+> パスワード: aaaaaa <br>
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+<br>
+
+# 言語
+- Node.js v16.1.0 <br>
+- Vue.js vue@2.6.14 <br>- Firebase 9.14.0 <br>
+- Firebase 9.14.0 <br>
+- Tailwind CSS <br>
+
+<br>
+
+# 搭載機能
+- ユーザー登録ページ
+  - 新規ユーザー登録
+  - メール/パスワードのバリデーション
+  - アクセス制限（ユーザー登録していない場合のページアクセスの制限）
+- サインインページ
+  - 登録済みユーザーでのサインイン
+  - メール/パスワードのバリデーション
+  - アクセス制限（サインインしていない場合のページアクセスの制限）
+- メインページ
+  - サインアウト
+  - ダイレクトメッセージ
+    - ダイレクトメッセージの送受信(編集・削除)
+    - ファイルのアップロード(プログレスバーの設定)
+  - チャンネルメッセージ
+    - 新規チャンネルの作成(登録メンバー全員のチャンネル)
+    - チャンネルメッセージの送受信(編集・削除)
+    - ファイルのアップロード(プログレスバーの設定)  
+  - ユーザー接続状態の確認
